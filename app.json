@@ -3,5 +3,9 @@
   "title": "/ - File Explorer",
   "url": "index.html",
   "icon": "logo.png",
-  "multipleWindows": true
+  "multipleWindows": true,
+  "fileSystem": {
+    "name": "Computer",
+    "url": "index.html"
+  }
 }
