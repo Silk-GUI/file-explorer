@@ -1,5 +1,6 @@
 var fs = require('fs');
-var mime = require("mime")
+var mime = require("mime");
+var home = require("home");
 var methods = Silk.methods;
 
 function parsePath(path){
@@ -45,6 +46,10 @@ function setupWatcher(path,call_ob,next){
 }
 
 methods.add({
+  "fe/home": function (data, call_ob, send) {
+    console.log(home());
+    return home();
+  },
   "fe/list/path": function (path,call_ob,next) {
     if(typeof path == "undefined")
       path = "/";
@@ -67,7 +72,7 @@ methods.add({
         console.log(path);
     console.log(name);
     console.log(path + "/" + name);
-    
+
     if(typeof path == "undefined"){
       path = "/"
     }
@@ -79,9 +84,9 @@ methods.add({
         if (err) {
             if (err.code == 'EEXIST') send("Fodler already exists"); // ignore the error if the folder already exists
             else send(err); // something else went wrong
-        } 
+        }
       else send(void(0), {"status": "done"}); // successfully created folder
     });
-    
+
   }
 })

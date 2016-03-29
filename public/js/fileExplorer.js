@@ -35,7 +35,7 @@ function file_explorer(elem) {
     that.processList(that.href, list);
   });
 
-  this.changeDirectory("/");
+  this.changeDirectory(path);
 }
 
 file_explorer.prototype.changeDirectory = function (href) {
@@ -93,5 +93,8 @@ file_explorer.prototype.processList = function (href, list) {
 
 
 jQuery(function ($) {
-  new file_explorer();
+  methods.call('fe/home', null, function (err, result) {
+    path = result;
+    new file_explorer();
+  });
 })
