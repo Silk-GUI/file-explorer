@@ -1,7 +1,12 @@
 var path = "/";
+var server = null;
+
+var eurecaClient = new Eureca.Client({
+  transport: 'sockjs'
+});
 
 function file_explorer(elem) {
-  if(typeof elem == "undefined")
+  if (typeof elem == "undefined")
     elem = "body";
   this.elem = jQuery(elem);
   this.files = this.elem.find(".files");
@@ -16,45 +21,41 @@ function file_explorer(elem) {
   // open file when clicked
   jQuery(this.elem).on("click", ".files .file a", function (e) {
     e.preventDefault();
-    Manager.get('open', {path: $(this).attr("href"), mime: $(this).parent().attr("data-mime")});
+    Manager.get('open', { path: $(this).attr("href"), mime: $(this).parent().attr("data-mime") });
     // alert("You're going to have to setup a default view for mimetype: " + $(this).parent().attr("data-mime"));
     return false;
   })
   // Create folder
   jQuery("#newFolder").click(function (e) {
     var name = prompt("Name of Folder");
-    methods.listen("fe/create/folder", {path: that.href, name: name}, function (err, result) {
-      if(err) {
-        alert(err);
-        return;
-      }
+    server.createFolder({ path: that.href, name: name }).onReady(function (result) {
+      that.changeDirectory(path);
     })
   })
-  this.listener = methods.listen("fe/list/path", function (err, list) {
-    if(err) return alert(JSON.stringify(err));
-    that.processList(that.href, list);
-  });
 
   this.changeDirectory(path);
 }
 
 file_explorer.prototype.changeDirectory = function (href) {
+  let that = this;
   // get files in / directory
   console.log("sending href: " + href);
   this.href = href;
-  this.listener.send(href)
+  server.list(href).onReady(function (list) {
+    that.processList(href, list);
+  });
 }
 
 file_explorer.prototype.processCD = function (href) {
   aref = href.split("/");
-  if(/\/$/.test(href)) {
+  if (/\/$/.test(href)) {
     aref.pop();
   }
   this.cd.empty();
   var netref = "";
   for (var i = 0; i < aref.length; i++) {
     var name = aref[i];
-    if(name == "") {
+    if (name == "") {
       name = "root";
     } else
       netref += "/" + name
@@ -69,7 +70,7 @@ file_explorer.prototype.processList = function (href, list) {
   // add folders and separate files
   for (var i = 0; i < list.length; i++) {
     var item = list[i];
-    if(item.isDir) {
+    if (item.isDir) {
       var el = jQuery("<li><a href='" + item.path + "'><i class='fa fa-folder'></i>" + item.name + "</a></li>");
       this.files.append(el);
       el.addClass("directory");
@@ -91,10 +92,10 @@ file_explorer.prototype.processList = function (href, list) {
 
 }
 
-
-jQuery(function ($) {
-  methods.call('fe/home', null, function (err, result) {
-    path = result;
+eurecaClient.ready(function (serverProxy) {
+  server = serverProxy;
+  serverProxy.home().onReady(function (data) {
+    path = data;
     new file_explorer();
   });
-})
+});
